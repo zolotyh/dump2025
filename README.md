@@ -1,1 +1,1 @@
-https://zolotyh.github.io/uwdc2024/
+<https://zolotyh.github.io/uwdc2024/>
