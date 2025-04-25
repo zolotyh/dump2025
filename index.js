@@ -1,15 +1,21 @@
-scale$; // 1, 1.1, 1.2
-pageId$
-selection$
+function createMultiMethod() {
+  const methods = {};
 
+  const multiMethod = (...args) => {
+    const key = args.join(" ");
+    if (key in methods) {
+      return methods[key](...args);
+    }
+    if ("*" in methods) {
+      return methods["*"](...args); // fallback
+    }
+    throw new Error("No matching method");
+  };
 
+  multiMethod.def = (key, impl) => {
+    methods[key] = impl;
+    return multiMethod;
+  };
 
-const selectionForCore$ = merge(selection$, pageId$, scale$).pipe(map(([selection, pageId, scale]) => {pageId, selection, scale }));
-
-
-
-const Const = ({zoom}) => {
-  <div onMouseDown=setSelection()></div>
+  return multiMethod;
 }
-
-
