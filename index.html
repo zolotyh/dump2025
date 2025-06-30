@@ -40,10 +40,6 @@
         <section>
           <img src="./img/logo.svg" style="height: 50vh" alt="" />
         </section>
-        <section
-          data-background-image="./img/myoffice.png"
-          data-background-position="top"
-        ></section>
         <section>
           <h2>команда веб-редакторов</h2>
           <img src="./img/office.png" alt="" />
@@ -105,39 +101,14 @@ function example(x) {
         </section>
         <section>
           <h2>Много if &mdash; плохо</h2>
-        </section>
-        <section data-transition="slide none">
-          <h2>Чем плох код?</h2>
-          <pre><code data-trim style="font-size: 0.7em; line-height: 1.3em">
-function renderWidget(widget) {
-  if (widget.type === &quot;dashboard&quot;) {
-    return `&lt;div class=&quot;dashboard&quot;&gt;${widget.data.summary}&lt;/div&gt;`;
-  } else if (widget.type === &quot;chart&quot;) {
-    return `&lt;canvas class=&quot;chart&quot; data-config=&quot;${widget.data.config}&quot;&gt;&lt;/canvas&gt;`;
-  } else {
-    console.warn(&quot;Unsupported widget configuration:&quot;, widget);
-    return `&lt;div&gt;Unsupported widget&lt;/div&gt;`;
-  }
-}
-          </code></pre>
-        </section>
-        <section>
-          <h2>S<mark>O</mark>LID</h2>
-          <p class="fragment">open–closed principle (OCP)</p>
-          <p class="fragment">сущности должны быть открыты для расширения, но закрыты для модификации</p>
-        </section>
-        <section>
-          <h2 class="r-fit-text">Open–closed principle</h2>
           <ul>
-            <li>Снижение риска ошибок</li>
-            <li>Упрощение поддержки</li>
-            <li>Сокращение конфликтов при слиянии кода</li>
-            <li>Гибкость</li>
+            <li>Тяжело читать</li>
+            <li>Сложно разбивть на модули</li>
           </ul>
         </section>
         <section data-transition="slide none">
           <h2>Чем плох код?</h2>
-          <pre><code data-trim style="font-size: 0.7em; line-height: 1.3em">
+          <pre><code data-trim style="font-size: 0.7em; line-height: 1.3em" data-line-numbers="1-10|3,5,8|2,4|2,4,6">
 function renderWidget(widget) {
   if (widget.type === &quot;dashboard&quot;) {
     return `&lt;div class=&quot;dashboard&quot;&gt;${widget.data.summary}&lt;/div&gt;`;
@@ -151,7 +122,7 @@ function renderWidget(widget) {
           </code></pre>
         </section>
         <section data-transition="slide none">
-          <h2>Чем плох код?</h2>
+          <h2>Нужен еще один виджет!</h2>
           <pre><code data-trim style="font-size: 0.7em; line-height: 1.3em" data-line-numbers="6-7">
 function renderWidget(widget) {
   if (widget.type === &quot;dashboard&quot;) {
@@ -170,44 +141,20 @@ function renderWidget(widget) {
         <section>
           <h2>Решение</h2>
           <pre><code class="javascript" data-trim data-line-numbers="1-13|2-6|8|10-12|15-33">
-function renderWidget(widget) {
-  const widgetRenderers = {
+function renderWidget(widgetType) {
+  const widgets = {
     dashboard: renderDashboardWidget,
     chart: renderChartWidget,
     superchart: renderSuperChartWidget
   };
 
-  const renderer = widgetRenderers[widget.type];
+  const widget = widgets[widget.type];
   
-  return renderer 
-    ? renderer(widget.data)
-    : handleUnsupportedWidget(widget);
-}
-
-function renderDashboardWidget(data) {
-  return `<div class="dashboard">${data.summary}</div>`;
-}
-
-function renderChartWidget(data) {
-  return createCanvasElement('chart', data.config);
-}
-
-function renderSuperChartWidget(data) {
-  return createCanvasElement('superchart', data.config);
-}
-
-function createCanvasElement(className, config) {
-  return `<canvas class="${className}" data-config="${config}"></canvas>`;
-}
-
-function handleUnsupportedWidget(widget) {
-  console.warn("Unsupported widget configuration:", widget);
-  return `<div>Unsupported widget</div>`;
+  return widget 
+    ? widget(widget.data)
+    : handleUnsupportedWidget(widgetType);
 }
           </code></pre>
-        </section>
-        <section
-          <h2>Что может пойти не так!?</h2>
         </section>
         <section>
           <h2>Множественные условия</h2>
@@ -244,7 +191,25 @@ function renderWidget(widget, userRole, theme) {
           </code></pre>
         </section>
         <section>
-          <h2>Можно сделать так</h2>
+          <h2 class="r-fit-text">Используем составные ключи</h2>
+          <pre><code data-trim class="javascript">
+const widgetHandlers = {
+  &#39;dashboard-admin-dark&#39;: (widget) =&gt; 
+    `&lt;div class=&quot;dashboard dark admin&quot;&gt;${widget.data.summary}&lt;/div&gt;`,
+  
+  &#39;dashboard-user-dark&#39;: (widget) =&gt; 
+    `&lt;div class=&quot;dashboard dark user&quot;&gt;${widget.data.summary}&lt;/div&gt;`,
+  
+  &#39;chart-admin-light&#39;: (widget) =&gt; 
+    `&lt;canvas class=&quot;chart light admin&quot; data-config=&quot;${widget.data.config}&quot;&gt;&lt;/canvas&gt;`,
+  
+  &#39;chart-user-light&#39;: (widget) =&gt; 
+    `&lt;canvas class=&quot;chart light user&quot; data-config=&quot;${widget.data.config}&quot;&gt;&lt;/canvas&gt;`
+};
+          </code></pre>
+        </section>
+        <section>
+          <h2 class="r-fit-text">Используем составные ключи</h2>
           <pre><code class="javascript">
 function renderWidget(widget, userRole, theme) {
   const { type, data } = widget;
@@ -279,24 +244,6 @@ function renderWidget(widget, userRole, theme) {
 }
           </code></pre>
         </section>
-        <section>
-          <h2 class="r-fit-text">Используем составные ключи</h2>
-          <pre><code data-trim class="javascript">
-const widgetHandlers = {
-  &#39;dashboard-admin-dark&#39;: (widget) =&gt; 
-    `&lt;div class=&quot;dashboard dark admin&quot;&gt;${widget.data.summary}&lt;/div&gt;`,
-  
-  &#39;dashboard-user-dark&#39;: (widget) =&gt; 
-    `&lt;div class=&quot;dashboard dark user&quot;&gt;${widget.data.summary}&lt;/div&gt;`,
-  
-  &#39;chart-admin-light&#39;: (widget) =&gt; 
-    `&lt;canvas class=&quot;chart light admin&quot; data-config=&quot;${widget.data.config}&quot;&gt;&lt;/canvas&gt;`,
-  
-  &#39;chart-user-light&#39;: (widget) =&gt; 
-    `&lt;canvas class=&quot;chart light user&quot; data-config=&quot;${widget.data.config}&quot;&gt;&lt;/canvas&gt;`
-};
-          </code></pre>
-        </section>
        <section>
          <h2>Использование</h2>
          <pre><code data-trim class="javascript">
@@ -310,8 +257,7 @@ renderWidget(myWidget, &quot;admin&quot;, &quot;light&quot;);
           </code></pre>
        </section>
         <section style="text-align: left">
-          <p>&mdash; Что опять не так!?</p>
-          <p class="fragment">&mdash; Как можно это переиспользовать?</p>
+          <p>&mdash; Как можно это переиспользовать?</p>
         </section>
         <section>
           <h2>Как должен выглядеть API</h2>
@@ -422,6 +368,42 @@ const chartWidget = {
 renderWidget(chartWidget, &quot;admin&quot;, &quot;light&quot;);
           </code></pre>
         </section>
+        <section data-transition="slide none">
+          <h2>Заменяем на функцию</h2>
+          <pre><code class="javascript" data-trim data-nescape>
+widgets[widgetType]
+          </code></pre>
+          <pre class="fragment"><code class="javascript" data-trim data-nescape>
+widgets.prototype.get = (widgetsType) =>  this[widgetType]
+
+// использование
+widgets.get(widgetType)
+          </code></pre>
+          <pre class="fragment"><code class="javascript" data-trim data-nescape>
+const get = (widgets, widgetType) => widgets[widgetType];
+
+// Перестали зависеть от this/widgets
+get(windget, widgetsType);
+          </code></pre>
+        </section>
+        <section data-transition="none slide">
+          <h2>Просто и гибко</h2>
+          <pre class="fragment"><code class="javascript" data-trim data-nescape>
+const dispatch = (widgets, widgetType) => widgets[widgetType];
+
+// Перестали зависеть от this/widgets
+dispatch(windget, widgetsType);
+          </code></pre>
+        </section>
+        <section>
+          <h2>Просто и гибко</h2>
+          <pre class="fragment"><code class="javascript" data-trim data-nescape>
+const get = (widgets, widgetType) => widgets[widgetType];
+
+// Перестали зависеть от this/widgets
+get(windget, widgetsType);
+          </code></pre>
+        </section>
         <section>
           <pre><code data-trim="" class="javascript" data-line-numbers="1-24|2|19|1|5-7">
 function createMultiMethod(dispatchFn) {
@@ -448,6 +430,21 @@ function createMultiMethod(dispatchFn) {
 
   return multiMethod;
 }
+          </code></pre>
+        </section>
+        <section>
+          <h2>Все динамично и гибко</h2>
+<pre><code class="javascript" data-trim>
+// Все статично
+if(condition) {}
+esle if(condition2) {}
+          </code></pre>
+          <pre class="fragment"><code class="javascript" data-trim data-nescape>
+const dispatch = (widgets, widgetType) => { 
+// любая логика
+};
+
+dispatch(windget, widgetsType);
           </code></pre>
         </section>
         <section>
@@ -703,10 +700,6 @@ export class CommandExecutorComponent {
           </h3>
           <table>
             <tr>
-              <td>
-                <p style="text-align: center; margin: 0">Обратная связь</p>
-                <img style="max-width: 20vw;" src="img/an.png" alt="">
-              </td>
               <td>
                 <p style="text-align: center; margin: 0 auto">Слайды</p>
                 <img style="max-width: 20vw;" src="img/pr.png" alt="">
